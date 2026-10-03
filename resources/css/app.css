@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Grayscale Mode */
+.grayscale {
+    filter: grayscale(100%);
+}
+
+.grayscale img,
+.grayscale video {
+    filter: grayscale(100%);
+}
+
+/* Optional: Add a transition for smooth color change */
+html {
+    transition: filter 0.3s ease;
+}
+
+/* Optional: Exclude certain elements from grayscale if needed */
+.grayscale .no-grayscale {
+    filter: none;
+}

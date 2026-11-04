@@ -1,97 +1,188 @@
-<x-guest-layout>
-    <div class="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-12 flex-col justify-between relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-full">
-                <div class="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
-                <div class="absolute bottom-20 right-20 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+{{--
+    Halaman Lupa Password — desain mengikuti bahasa desain Decision (Autopsy / Analysis).
+    Perubahan disasar pada styling saja; logika form, route, dan validasi tetap sama.
+--}}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Lupa Password - {{ config('app.name') }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #171A44;
+            --indigo: #4B4FE0;
+            --peri: #7C8CFF;
+            --mint: #4FE3C1;
+            --sun: #FFB36B;
+            --paper: #EEF0FF;
+            --field: #F6F7FF;
+            --line: #DADDF4;
+            --muted: #666B92;
+            --danger: #D93A41;
+            --ease: cubic-bezier(.77, 0, .18, 1);
+            --font-display: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+        body {
+            min-height: 100vh; min-height: 100dvh;
+            display: grid; place-items: center; padding: 24px;
+            font-family: var(--font-body);
+            color: var(--ink);
+            background:
+                radial-gradient(900px 500px at 10% 0%, #fff 0%, transparent 60%),
+                var(--paper);
+        }
+
+        .auth { position: relative; width: min(460px, 100%); background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 30px 70px -30px rgba(23, 26, 68, .35); }
+        .pane { position: relative; width: 100%; display: flex; flex-direction: column; justify-content: center; padding: 40px; }
+        .pane h1 { font-family: var(--font-display); font-weight: 800; font-size: 2.1rem; letter-spacing: -.02em; line-height: 1.1; }
+        .pane .sub { margin: 10px 0 26px; color: var(--muted); font-size: .95rem; line-height: 1.55; }
+
+        .field { position: relative; margin-bottom: 14px; }
+        .field input[type="email"] {
+            width: 100%; height: 56px; padding: 22px 16px 8px 16px;
+            font: 500 .98rem var(--font-body); color: var(--ink);
+            background: var(--field); border: 1.5px solid var(--line); border-radius: 14px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+        }
+        .field input[type="email"]:focus, .field input[type="email"]:not(:placeholder-shown) { background: #fff; }
+        .field input[type="email"]:focus { border-color: var(--indigo); box-shadow: 0 0 0 4px rgba(75, 79, 224, .14); }
+        .field label {
+            position: absolute; left: 17px; top: 50%; transform: translateY(-50%);
+            font-size: .95rem; color: var(--muted); pointer-events: none;
+            transition: top .2s, font-size .2s, color .2s, transform .2s;
+        }
+        .field input[type="email"]:focus + label,
+        .field input[type="email"]:not(:placeholder-shown) + label { top: 17px; transform: none; font-size: .72rem; font-weight: 600; }
+        .field input[type="email"]:focus + label { color: var(--indigo); }
+        .field.shake { animation: shake .45s; }
+        .field.shake input { border-color: var(--danger); }
+
+        .btn {
+            position: relative; width: 100%; height: 54px;
+            border: 0; border-radius: 14px;
+            font: 600 1rem var(--font-body); color: #fff;
+            background: linear-gradient(120deg, var(--indigo), #6A5CFF 55%, var(--indigo));
+            background-size: 200% 100%;
+            cursor: pointer; overflow: hidden;
+            transition: background-position .6s ease, transform .15s, box-shadow .25s;
+            box-shadow: 0 14px 28px -14px rgba(75, 79, 224, .75);
+        }
+        .btn:hover { background-position: 100% 0; box-shadow: 0 18px 32px -14px rgba(75, 79, 224, .9); }
+        .btn:active { transform: scale(.985); }
+        .btn:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
+        .btn .label { transition: opacity .2s, transform .3s; display: inline-block; }
+        .btn .spin { position: absolute; inset: 0; margin: auto; width: 22px; height: 22px; border: 3px solid rgba(255, 255, 255, .35); border-top-color: #fff; border-radius: 50%; opacity: 0; animation: spin .8s linear infinite; }
+        .btn.is-loading { pointer-events: none; }
+        .btn.is-loading .label { opacity: 0; transform: translateY(-8px); }
+        .btn.is-loading .spin { opacity: 1; }
+
+        .alert { margin-bottom: 16px; padding: 12px 14px; border-radius: 12px; font-size: .88rem; line-height: 1.45; color: #8E1F25; background: #FDECEE; border: 1px solid #F7C7CB; animation: shake .45s; }
+        .alert.ok { color: #0F6B55; background: #E5FAF4; border-color: #B6EEDF; animation: none; }
+
+        .back-home { display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin-bottom: 24px; color: var(--muted); font-size: .85rem; font-weight: 600; text-decoration: none; transition: color .2s, transform .2s; }
+        .back-home:hover { color: var(--indigo); text-decoration: none; transform: translateX(-3px); }
+        .back-home svg { width: 17px; height: 17px; stroke: currentColor; }
+
+        a { color: var(--indigo); font-weight: 600; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-2px); }
+            20%, 80% { transform: translateX(4px); }
+            30%, 50%, 70% { transform: translateX(-7px); }
+            40%, 60% { transform: translateX(7px); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 560px) {
+            body { padding: 16px 12px; }
+            .pane { padding: 32px 20px; }
+            .pane h1 { font-size: 1.8rem; }
+            .pane .sub { margin: 6px 0 20px; font-size: .9rem; }
+            .field input[type="email"] { height: 52px; font-size: .95rem; }
+            .btn { height: 50px; font-size: .95rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; transition-delay: 0s !important; }
+        }
+    </style>
+</head>
+<body>
+
+<main class="auth">
+    <section class="pane">
+        <a href="{{ url('/') }}" class="back-home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5" />
+                <path d="M12 19l-7-7 7-7" />
+            </svg>
+            Kembali ke Beranda
+        </a>
+
+        <h1>Reset Password</h1>
+        <p class="sub">Masukkan email Anda dan kami akan mengirimkan link untuk mereset password Anda.</p>
+
+        @if (session('status'))
+            <div class="alert ok" role="status">{{ session('status') }}</div>
+        @endif
+        @if ($errors->any() && old('form') === 'login')
+            <div class="alert" role="alert">{{ $errors->first() }}</div>
+        @endif
+
+        <form method="POST" action="{{ route('password.email') }}" data-auth-form>
+            @csrf
+
+            <div class="field">
+                <input type="email" id="email" name="email" placeholder=" " value="{{ old('email') }}" required autocomplete="email" />
+                <label for="email">Email</label>
             </div>
-            <div class="relative z-10">
-                <a href="/" class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-bold text-white">SME Nexus</span>
-                </a>
-            </div>
-            <div class="relative z-10 space-y-6">
-                <div>
-                    <h1 class="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
-                        Lupa Password?<br>
-                        <span class="text-blue-200">Tidak Masalah!</span>
-                    </h1>
-                    <p class="text-lg text-blue-100 max-w-md">
-                        Masukkan email Anda dan kami akan mengirimkan link untuk mereset password Anda.
-                    </p>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <p class="text-blue-200 text-sm">© 2026 SME Nexus. All rights reserved.</p>
-            </div>
-        </div>
 
-        <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
-            <div class="w-full max-w-md">
-                <div class="lg:hidden flex items-center justify-center gap-3 mb-8">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-900">SME Nexus</span>
-                </div>
+            <button type="submit" class="btn"><span class="label">Kirim Link Reset</span><span class="spin" aria-hidden="true"></span></button>
+        </form>
 
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                        </svg>
-                    </div>
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Reset Password</h2>
-                    <p class="text-gray-500">Masukkan email untuk menerima link reset</p>
-                </div>
+        <p class="mt-6 text-center text-sm" style="color: var(--muted);">
+            <a href="{{ route('login') }}">Kembali ke halaman login</a>
+        </p>
+    </section>
+</main>
 
-                <div class="mb-6 p-4 bg-blue-50 rounded-xl">
-                    <p class="text-sm text-blue-700">
-                        {{ __('Lupa password? Tidak masalah. Cukup beri tahu kami alamat email Anda dan kami akan mengirimkan link reset password yang memungkinkan Anda memilih yang baru.') }}
-                    </p>
-                </div>
+<script>
+    (function () {
+        var form = document.querySelector('form');
+        if (!form) return;
+        var btn = form.querySelector('.btn');
+        var sending = false;
 
-                <x-auth-session-status class="mb-4" :status="session('status')" />
+        form.addEventListener('invalid', function (e) {
+            var f = e.target.closest('.field');
+            if (!f) return;
+            f.classList.remove('shake');
+            void f.offsetWidth;
+            f.classList.add('shake');
+            f.addEventListener('animationend', function () { f.classList.remove('shake'); }, { once: true });
+        }, true);
 
-                <form method="POST" action="{{ route('password.email') }}" class="space-y-5">
-                    @csrf
-                    <div>
-                        <x-input-label for="email" :value="__('Email')" class="text-sm font-medium text-gray-700" />
-                        <div class="relative mt-2">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                                </svg>
-                            </div>
-                            <x-text-input id="email" class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="email" name="email" :value="old('email')" required autofocus placeholder="nama@email.com" />
-                        </div>
-                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                    </div>
-
-                    <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 transition-all duration-200">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        {{ __('Kirim Link Reset') }}
-                    </button>
-                </form>
-
-                <p class="mt-6 text-center text-sm text-gray-600">
-                    <a href="{{ route('login') }}" class="font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Kembali ke halaman login
-                    </a>
-                </p>
-            </div>
-        </div>
-    </div>
-</x-guest-layout>
+        form.addEventListener('submit', function (e) {
+            if (sending) { e.preventDefault(); return; }
+            sending = true;
+            var btnEl = form.querySelector('.btn');
+            btnEl.classList.add('is-loading');
+            btnEl.setAttribute('aria-busy', 'true');
+        });
+    })();
+</script>
+</body>
+</html>

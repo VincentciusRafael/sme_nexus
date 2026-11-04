@@ -570,8 +570,8 @@
             <input type="hidden" name="form" value="register">
 
             <div class="field">
-                <input type="text" id="reg-name" name="name" placeholder=" " autocomplete="name" required
-                       value="{{ old('form') === 'register' ? old('name') : '' }}">
+                <input type="text" id="reg-name" name="full_name" placeholder=" " autocomplete="name" required
+                       value="{{ old('form') === 'register' ? old('full_name') : '' }}">
                 <label for="reg-name">Nama lengkap</label>
             </div>
 

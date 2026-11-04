@@ -1,108 +1,198 @@
-<x-guest-layout>
-    <div class="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-12 flex-col justify-between relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-full">
-                <div class="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
-                <div class="absolute bottom-20 right-20 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-            </div>
-            <div class="relative z-10">
-                <a href="/" class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-bold text-white">SME Nexus</span>
-                </a>
-            </div>
-            <div class="relative z-10 space-y-6">
-                <div>
-                    <h1 class="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
-                        Area Aman<br>
-                        <span class="text-blue-200">Aplikasi</span>
-                    </h1>
-                    <p class="text-lg text-blue-100 max-w-md">
-                        Ini adalah area aman dari aplikasi. Harap konfirmasi password Anda sebelum melanjutkan.
-                    </p>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <p class="text-blue-200 text-sm">© 2026 SME Nexus. All rights reserved.</p>
-            </div>
-        </div>
+{{-- resources/views/auth/confirm-password.blade.php --}}
+{{--
+    Halaman Konfirmasi Password — desain mengikuti bahasa desain Decision (Autopsy / Analysis).
+    Perubahan disasar pada styling saja; logika form, route, dan validasi tetap sama.
+--}}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Konfirmasi Password - {{ config('app.name') }}</title>
 
-        <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
-            <div class="w-full max-w-md">
-                <div class="lg:hidden flex items-center justify-center gap-3 mb-8">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-900">SME Nexus</span>
-                </div>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                    </div>
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Konfirmasi Password</h2>
-                    <p class="text-gray-500">Masukkan password untuk melanjutkan</p>
-                </div>
-
-                <div class="mb-6 p-4 bg-blue-50 rounded-xl">
-                    <p class="text-sm text-blue-700">
-                        {{ __('Ini adalah area aman dari aplikasi. Harap konfirmasi password Anda sebelum melanjutkan.') }}
-                    </p>
-                </div>
-
-                <form method="POST" action="{{ route('password.confirm') }}" class="space-y-5">
-                    @csrf
-                    <div>
-                        <x-input-label for="password" :value="__('Password')" class="text-sm font-medium text-gray-700" />
-                        <div class="relative mt-2">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                            </div>
-                            <x-text-input id="password" class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" type="password" name="password" required autocomplete="current-password" placeholder="••••••••" />
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <button type="button" onclick="togglePassword()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
-                                    <svg id="eye-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                    </div>
-
-                    <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 transition-all duration-200">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {{ __('Konfirmasi') }}
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eye-icon');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />`;
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
-            }
+    <style>
+        :root {
+            --ink: #171A44;
+            --indigo: #4B4FE0;
+            --peri: #7C8CFF;
+            --mint: #4FE3C1;
+            --sun: #FFB36B;
+            --paper: #EEF0FF;
+            --field: #F6F7FF;
+            --line: #DADDF4;
+            --muted: #666B92;
+            --danger: #D93A41;
+            --ease: cubic-bezier(.77, 0, .18, 1);
+            --font-display: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
         }
-    </script>
-</x-guest-layout>
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+        body {
+            min-height: 100vh; min-height: 100dvh;
+            display: grid; place-items: center; padding: 24px;
+            font-family: var(--font-body);
+            color: var(--ink);
+            background:
+                radial-gradient(900px 500px at 10% 0%, #fff 0%, transparent 60%),
+                var(--paper);
+        }
+
+        .auth { position: relative; width: min(460px, 100%); background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 30px 70px -30px rgba(23, 26, 68, .35); }
+        .pane { position: relative; width: 100%; display: flex; flex-direction: column; justify-content: center; padding: 40px; }
+        .pane h1 { font-family: var(--font-display); font-weight: 800; font-size: 2.1rem; letter-spacing: -.02em; line-height: 1.1; }
+        .pane .sub { margin: 10px 0 26px; color: var(--muted); font-size: .95rem; line-height: 1.55; }
+
+        .field { position: relative; margin-bottom: 14px; }
+        .field input[type="password"] {
+            width: 100%; height: 56px; padding: 22px 48px 8px 16px;
+            font: 500 .98rem var(--font-body); color: var(--ink);
+            background: var(--field); border: 1.5px solid var(--line); border-radius: 14px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+        }
+        .field input[type="password"]:focus, .field input[type="password"]:not(:placeholder-shown) { background: #fff; }
+        .field input[type="password"]:focus { border-color: var(--indigo); box-shadow: 0 0 0 4px rgba(75, 79, 224, .14); }
+        .field label {
+            position: absolute; left: 17px; top: 50%; transform: translateY(-50%);
+            font-size: .95rem; color: var(--muted); pointer-events: none;
+            transition: top .2s, font-size .2s, color .2s, transform .2s;
+        }
+        .field input:focus + label, .field input:not(:placeholder-shown) + label { top: 17px; transform: none; font-size: .72rem; font-weight: 600; }
+        .field input:focus + label { color: var(--indigo); }
+        .eye { position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; transition: background .2s, color .2s; }
+        .eye:hover { background: rgba(75, 79, 224, .08); color: var(--indigo); }
+        .eye:focus-visible { outline: 2px solid var(--indigo); outline-offset: 1px; }
+        .eye svg { width: 20px; height: 20px; }
+        .eye .off { display: none; }
+        .eye[aria-pressed="true"] .on { display: none; }
+        .eye[aria-pressed="true"] .off { display: block; }
+        .field.shake { animation: shake .45s; }
+        .field.shake input { border-color: var(--danger); }
+
+        .btn {
+            position: relative; width: 100%; height: 54px;
+            border: 0; border-radius: 14px;
+            font: 600 1rem var(--font-body); color: #fff;
+            background: linear-gradient(120deg, var(--indigo), #6A5CFF 55%, var(--indigo));
+            background-size: 200% 100%;
+            cursor: pointer; overflow: hidden;
+            transition: background-position .6s ease, transform .15s, box-shadow .25s;
+            box-shadow: 0 14px 28px -14px rgba(75, 79, 224, .75);
+        }
+        .btn:hover { background-position: 100% 0; box-shadow: 0 18px 32px -14px rgba(75, 79, 224, .9); }
+        .btn:active { transform: scale(.985); }
+        .btn:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
+        .btn .label { transition: opacity .2s, transform .3s; display: inline-block; }
+        .btn .spin { position: absolute; inset: 0; margin: auto; width: 22px; height: 22px; border: 3px solid rgba(255, 255, 255, .35); border-top-color: #fff; border-radius: 50%; opacity: 0; animation: spin .8s linear infinite; }
+        .btn.is-loading { pointer-events: none; }
+        .btn.is-loading .label { opacity: 0; transform: translateY(-8px); }
+        .btn.is-loading .spin { opacity: 1; }
+
+        .alert { margin-bottom: 16px; padding: 12px 14px; border-radius: 12px; font-size: .88rem; line-height: 1.45; color: #8E1F25; background: #FDECEE; border: 1px solid #F7C7CB; animation: shake .45s; }
+        .alert.ok { color: #0F6B55; background: #E5FAF4; border-color: #B6EEDF; animation: none; }
+
+        .back-home { display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin-bottom: 24px; color: var(--muted); font-size: .85rem; font-weight: 600; text-decoration: none; transition: color .2s, transform .2s; }
+        .back-home:hover { color: var(--indigo); text-decoration: none; transform: translateX(-3px); }
+        .back-home svg { width: 17px; height: 17px; stroke: currentColor; }
+
+        a { color: var(--indigo); font-weight: 600; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        @keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); } 30%, 50%, 70% { transform: translateX(-7px); } 40%, 60% { transform: translateX(7px); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 560px) {
+            body { padding: 16px 12px; }
+            .pane { padding: 32px 20px; }
+            .pane h1 { font-size: 1.8rem; }
+            .pane .sub { margin: 6px 0 20px; font-size: .9rem; }
+            .field input[type="password"] { height: 52px; font-size: .95rem; }
+            .btn { height: 50px; font-size: .95rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; transition-delay: 0s !important; }
+        }
+    </style>
+</head>
+<body>
+
+<main class="auth">
+    <section class="pane">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background: rgba(75, 79, 224, .1); color: #4B4FE0;">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold mb-2" style="font-family: var(--font-display); font-weight: 800; letter-spacing: -.02em; color: var(--ink);">Konfirmasi Password</h2>
+            <p class="text-gray-500">Masukkan password untuk melanjutkan</p>
+        </div>
+
+        <div class="mb-6 p-4 rounded-xl" style="background: var(--field); border: 1px solid var(--line);">
+            <p class="text-sm" style="color: var(--ink);">
+                {{ __('Ini adalah area aman dari aplikasi. Harap konfirmasi password Anda sebelum melanjutkan.') }}
+            </p>
+        </div>
+
+        <form method="POST" action="{{ route('password.confirm') }}" class="auth-form" data-auth-form>
+            @csrf
+
+            <div class="field">
+                <input type="password" id="password" name="password" placeholder=" " required autocomplete="current-password" />
+                <label for="password">Password</label>
+                <button type="button" class="eye" aria-label="Tampilkan kata sandi" aria-pressed="false" data-eye>
+                    <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.2M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7c1.7 0 3.2-.4 4.5-1"/></svg>
+                </button>
+            </div>
+
+            <button type="submit" class="btn"><span class="label">Konfirmasi</span><span class="spin" aria-hidden="true"></span></button>
+        </form>
+    </section>
+</main>
+
+<script>
+    (function () {
+        var form = document.querySelector('form');
+        if (!form) return;
+        var btn = form.querySelector('.btn');
+        var sending = false;
+
+        document.querySelectorAll('[data-eye]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var input = b.parentElement.querySelector('input');
+                var show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                b.setAttribute('aria-pressed', show);
+                b.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+            });
+        });
+
+        form.addEventListener('invalid', function (e) {
+            var fld = e.target.closest('.field');
+            if (!fld) return;
+            fld.classList.remove('shake');
+            void fld.offsetWidth;
+            fld.classList.add('shake');
+            fld.addEventListener('animationend', function () { fld.classList.remove('shake'); }, { once: true });
+        }, true);
+
+        form.addEventListener('submit', function (e) {
+            if (sending) { e.preventDefault(); return; }
+            sending = true;
+            var b = form.querySelector('.btn');
+            b.classList.add('is-loading');
+            b.setAttribute('aria-busy', 'true');
+        });
+    })();
+</script>
+</body>
+</html>

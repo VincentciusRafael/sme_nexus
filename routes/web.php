@@ -30,6 +30,15 @@ Route::middleware('auth')->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+    Route::get('/dashboard/modules', function () {
+        return view('dashboard.modules');
+    })->name('dashboard.modules');
+
+    Route::prefix('decision')->name('decision.')->group(function () {
+        Route::get('/autopsy', [\App\Http\Controllers\Decision\AutopsyController::class, 'index'])->name('autopsy');
+        Route::post('/autopsy/analyze', [\App\Http\Controllers\Decision\AutopsyController::class, 'analyze'])->name('analyze');
+    });
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

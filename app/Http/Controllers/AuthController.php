@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -22,10 +21,14 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/dashboard');
+            // Admin langsung ke halaman admin, user lain tetap ke dashboard.
+            $user = Auth::user();
+            $default = $user && $user->role === 'admin' ? '/admin/business-autopsy' : '/dashboard';
+
+            return redirect()->intended($default);
         }
 
         // 'form' ikut dikirim balik agar halaman tetap membuka panel login.
@@ -37,7 +40,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
+            'full_name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'terms'    => ['accepted'],
@@ -49,9 +52,11 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
+            'full_name' => $data['full_name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role' => 'sme_owner',
+            'is_verified' => false,
         ]);
 
         Auth::login($user);

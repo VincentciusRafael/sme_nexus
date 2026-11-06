@@ -20,7 +20,7 @@ class StoreSymptomRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:2000'],
             'metric_key' => ['required', 'string', 'max:100'],
             'operator' => ['required', Rule::in(array_column(RuleOperator::cases(), 'value'))],
-            'threshold' => ['required', 'numeric'],
+            'threshold' => ['required', 'numeric', 'max:99999999999.9999'],
             'severity' => ['required', Rule::in(array_column(Severity::cases(), 'value'))],
             'is_active' => ['nullable', 'boolean'],
         ];

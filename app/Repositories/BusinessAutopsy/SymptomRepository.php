@@ -15,14 +15,21 @@ class SymptomRepository
         return Symptom::query()
             ->withCount('conditions')
             ->when($filters['search'] ?? null, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('code', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%")
-                        ->orWhere('metric_key', 'like', "%{$search}%");
+                $escaped = addcslashes($search, '%_\\');
+                $query->where(function ($query) use ($escaped) {
+                    $query->where('code', 'like', "%{$escaped}%")
+                        ->orWhere('name', 'like', "%{$escaped}%")
+                        ->orWhere('metric_key', 'like', "%{$escaped}%");
                 });
             })
             ->when(array_key_exists('is_active', $filters) && $filters['is_active'] !== null, function ($query) use ($filters) {
-                $query->where('is_active', (bool) $filters['is_active']);
+                $bool = filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+                if ($bool !== null) {
+                    $query->where('is_active', $bool);
+                } else {
+                    $query->where('is_active', (bool) $filters['is_active']);
+                }
             })
             ->when($filters['id_symptom'] ?? null, fn ($query, $id) => $query->whereKey($id))
             ->orderBy('name')

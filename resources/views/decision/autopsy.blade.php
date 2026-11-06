@@ -14,6 +14,9 @@
         .ax svg { display:block; flex:none; }
         .ax p, .ax h1, .ax dl, .ax dd, .ax dt, .ax legend { margin:0; padding:0; }
         .ax fieldset { min-width:0; border:1px solid var(--line); }
+        .ax-alert { border:1px solid #F7C7CB; background:#FDECEE; color:#8E1F25; border-radius:1rem; padding:1rem 1.2rem; margin-bottom:1.5rem; font-size:.9rem; line-height:1.5; }
+        .ax-alert strong { display:block; margin-bottom:.35rem; }
+        .ax-alert ul { margin:0; padding-left:1.2rem; }
 
         .ax-grid { display:grid; gap:1.5rem; grid-template-columns:minmax(0,1fr); }
         @media (min-width:1024px) { .ax-grid { grid-template-columns:minmax(0,2fr) minmax(0,3fr); align-items:start; } .ax-monitor { position:sticky; top:1.5rem; } }
@@ -118,9 +121,29 @@
             ]],
         ];
         $ecg = 'M0 32 H60 L68 32 L74 14 L82 52 L90 6 L98 32 H140 L148 32 L154 22 L160 32 H210 L218 32 L224 14 L232 52 L240 6 L248 32 H300';
+        $metricFields = [
+            'omzet_prev', 'omzet_current', 'customer_prev', 'customer_current',
+            'sales_prev', 'sales_current', 'product_count', 'avg_price',
+            'marketing_spend', 'operational_cost',
+        ];
+        $initialMetrics = [];
+        foreach ($metricFields as $metric) {
+            $initialMetrics[$metric] = old($metric, '');
+        }
     @endphp
 
-    <div class="ax" x-data="autopsy()">
+    <div class="ax" x-data="autopsy({{ \Illuminate\Support\Js::from($initialMetrics) }})">
+        @if ($errors->any())
+            <div class="ax-alert" role="alert">
+                <strong>Data belum dapat diproses.</strong>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="ax-grid">
 
             <!-- Monitor langsung -->
@@ -191,7 +214,7 @@
                                     <label for="{{ $name }}" class="ax-label">{{ $label }}</label>
                                     <div class="ax-wrap">
                                         @if ($prefix)<span class="ax-pre">{{ $prefix }}</span>@endif
-                                        <input id="{{ $name }}" type="number" inputmode="numeric" min="0" name="{{ $name }}" x-model="f.{{ $name }}" required placeholder="{{ $ph }}" class="ax-field {{ $prefix ? 'has-pre' : '' }}">
+                                        <input id="{{ $name }}" type="number" inputmode="numeric" min="{{ str_contains($name, '_prev') ? 1 : 0 }}" name="{{ $name }}" x-model="f.{{ $name }}" required placeholder="{{ $ph }}" class="ax-field {{ $prefix ? 'has-pre' : '' }}">
                                     </div>
                                     @if ($prefix)
                                         <p class="ax-fmt" x-show="f.{{ $name }} !== ''" x-text="rp(f.{{ $name }})"></p>
@@ -221,9 +244,11 @@
     </div>
 
     <script>
-        function autopsy() {
+        function autopsy(initial = {}) {
+            const defaults = { omzet_prev: '', omzet_current: '', customer_prev: '', customer_current: '', sales_prev: '', sales_current: '', product_count: '', avg_price: '', marketing_spend: '', operational_cost: '' };
+
             return {
-                f: { omzet_prev: '', omzet_current: '', customer_prev: '', customer_current: '', sales_prev: '', sales_current: '', product_count: '', avg_price: '', marketing_spend: '', operational_cost: '' },
+                f: { ...defaults, ...initial },
                 shown: { omzet: 0, customer: 0, sales: 0 },
                 loading: false,
                 meters: [
@@ -249,21 +274,32 @@
                 },
                 get filled() { return Object.values(this.f).filter(v => v !== '').length; },
                 get status() {
-                    const o = this.ch.omzet;
+                    const { omzet: o, customer: c, sales: s } = this.ch;
                     if (o === null) return { label: 'Menunggu data', color: '#A3A8D6', speed: '3.4s' };
-                    if (o >= 0) return { label: 'Sehat', color: '#4FE3C1', speed: '2.4s' };
-                    if (o > -10) return { label: 'Waspada', color: '#FFB36B', speed: '1.5s' };
-                    return { label: 'Kritis', color: '#FF7A90', speed: '0.85s' };
+
+                    const tierOf = v => v === null ? 0 : v > -1 ? 0 : v >= -5 ? 1 : v >= -10 ? 2 : v >= -25 ? 3 : 4;
+                    const tiers = [tierOf(o), tierOf(c), tierOf(s)].filter(t => t > 0);
+                    const worst = tiers.length ? Math.max(...tiers) : 0;
+                    const escalated = tiers.length === 3 ? Math.min(worst + 1, 4) : worst;
+
+                    if (escalated === 4) return { label: 'Perlu Perhatian', color: '#FF7A90', speed: '0.85s' };
+                    if (escalated === 3) return { label: 'Perlu Perhatian', color: '#FF7A90', speed: '1.2s' };
+                    if (escalated === 2) return { label: 'Perlu Evaluasi', color: '#FFB36B', speed: '1.5s' };
+                    if (escalated === 1) return { label: 'Perlu Dipantau', color: '#F5C518', speed: '2s' };
+                    return { label: 'Stabil', color: '#4FE3C1', speed: '2.4s' };
                 },
                 get hint() {
                     const { omzet: o, customer: c, sales: s } = this.ch;
                     if (o === null) return 'Isi omzet dua periode dulu untuk melihat kondisi bisnis Anda.';
-                    if (o >= 0) return 'Omzet tidak turun. Lanjutkan, kami tetap cek risiko di biaya dan produk.';
                     if (c !== null && s !== null) {
-                        if (c <= -10 && c < s) return 'Customer turun lebih tajam dari penjualan. Kemungkinan masalah ada di jumlah pembeli.';
+                        if (o <= -1 && c <= -1 && s <= -1) return 'Semua indikator turun bersamaan. Ini tanda masalah yang lebih luas, bukan sekadar fluktuasi.';
+                        if (c < s && c <= -10) return 'Customer turun lebih tajam dari penjualan. Kemungkinan masalah ada di jumlah pembeli.';
                         if (s <= -10 && c > -5) return 'Customer relatif stabil tapi penjualan turun. Pembeli belanja lebih sedikit.';
                     }
-                    return 'Omzet turun. Lengkapi data customer dan penjualan untuk menemukan sumbernya.';
+                    if (o > -1) return 'Omzet belum turun. Lanjutkan, kami tetap cek risiko di biaya dan produk.';
+                    if (o >= -5) return 'Omzet turun ringan. Pantau tren beberapa hari ke depan.';
+                    if (o >= -10) return 'Omzet turun sedang. Evaluasi kanal penjualan dan strategi harga.';
+                    return 'Omzet turun lebih dari 10%. Segera evaluasi penyebab dan tindakan perbaikan.';
                 },
                 get derived() {
                     const oc = this.n('omzet_current'), sc = this.n('sales_current'), cc = this.n('customer_current');
@@ -279,7 +315,7 @@
                     return isNaN(x) ? '' : 'Rp ' + x.toLocaleString('id-ID');
                 },
                 fmtPct(v) { return (v > 0 ? '+' : '') + v.toFixed(1) + '%'; },
-                tone(v) { return v === null ? '#A3A8D6' : v >= 0 ? '#4FE3C1' : '#FF7A90'; },
+                tone(v) { return v === null ? '#A3A8D6' : v > -1 ? '#4FE3C1' : v >= -5 ? '#F5C518' : v >= -10 ? '#FFB36B' : '#FF7A90'; },
                 bar(k) {
                     const v = this.shown[k] || 0;
                     const w = Math.min(Math.abs(v) / 100 * 50, 50);

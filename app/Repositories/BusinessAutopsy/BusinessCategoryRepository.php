@@ -15,9 +15,10 @@ class BusinessCategoryRepository
         return BusinessCategory::query()
             ->withCount('smeProfiles')
             ->when($filters['search'] ?? null, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('category_name', 'like', "%{$search}%")
-                        ->orWhere('deskripsi', 'like', "%{$search}%");
+                $escaped = addcslashes($search, '%_\\');
+                $query->where(function ($query) use ($escaped) {
+                    $query->where('category_name', 'like', "%{$escaped}%")
+                        ->orWhere('deskripsi', 'like', "%{$escaped}%");
                 });
             })
             ->orderBy('category_name')

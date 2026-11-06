@@ -12,7 +12,7 @@ use App\Http\Controllers\BusinessAutopsy\Admin\SymptomController;
 use App\Http\Controllers\BusinessAutopsy\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth', 'role:admin'])
+Route::middleware(['web', 'auth', 'verified', 'role:admin'])
     ->prefix('admin/business-autopsy')
     ->name('admin.business-autopsy.')
     ->group(function () {

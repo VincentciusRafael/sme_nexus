@@ -72,7 +72,11 @@ class UserController extends Controller
         $data = $request->validated();
         $data['is_verified'] = $request->boolean('is_verified');
 
-        $this->users->update($user, $data);
+        try {
+            $this->users->update($user, $data);
+        } catch (DomainException $exception) {
+            return back()->withInput()->with('error', $exception->getMessage());
+        }
 
         return redirect()
             ->route('admin.business-autopsy.users.index')

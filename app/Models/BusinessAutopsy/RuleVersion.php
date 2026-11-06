@@ -3,6 +3,7 @@
 namespace App\Models\BusinessAutopsy;
 
 use App\Domain\BusinessAutopsy\Enums\RuleVersionStatus;
+use App\Domain\BusinessAutopsy\Enums\Severity;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -16,9 +17,12 @@ class RuleVersion extends Model
 
     protected $fillable = [
         'id_rule',
+        'id_diagnosis',
         'version',
         'status',
         'is_active',
+        'severity',
+        'priority',
         'notes',
         'published_at',
         'created_by',
@@ -31,6 +35,9 @@ class RuleVersion extends Model
             'is_active' => 'boolean',
             'published_at' => 'datetime',
             'version' => 'integer',
+            'id_diagnosis' => 'integer',
+            'severity' => Severity::class,
+            'priority' => 'integer',
         ];
     }
 
@@ -47,6 +54,11 @@ class RuleVersion extends Model
     public function rule(): BelongsTo
     {
         return $this->belongsTo(Rule::class, 'id_rule');
+    }
+
+    public function diagnosis(): BelongsTo
+    {
+        return $this->belongsTo(Diagnosis::class, 'id_diagnosis');
     }
 
     public function groups(): HasMany

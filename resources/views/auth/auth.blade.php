@@ -511,7 +511,7 @@
             <input type="hidden" name="form" value="login">
 
             <div class="field">
-                <input type="email" id="login-email" name="email" placeholder=" " autocomplete="email" required
+                <input type="email" id="login-email" name="email" placeholder=" " autocomplete="email" maxlength="100" required
                        value="{{ old('form') === 'login' ? old('email') : '' }}">
                 <label for="login-email">Email</label>
             </div>
@@ -570,13 +570,13 @@
             <input type="hidden" name="form" value="register">
 
             <div class="field">
-                <input type="text" id="reg-name" name="full_name" placeholder=" " autocomplete="name" required
+                <input type="text" id="reg-name" name="full_name" placeholder=" " autocomplete="name" maxlength="100" required
                        value="{{ old('form') === 'register' ? old('full_name') : '' }}">
                 <label for="reg-name">Nama lengkap</label>
             </div>
 
             <div class="field">
-                <input type="email" id="reg-email" name="email" placeholder=" " autocomplete="email" required
+                <input type="email" id="reg-email" name="email" placeholder=" " autocomplete="email" maxlength="100" required
                        value="{{ old('form') === 'register' ? old('email') : '' }}">
                 <label for="reg-email">Email</label>
             </div>

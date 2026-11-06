@@ -83,7 +83,6 @@ class RuleController extends Controller
     public function update(UpdateRuleRequest $request, Rule $rule): RedirectResponse
     {
         [$data, $groups] = $this->prepareData($request->validated());
-        unset($data['is_active']);
 
         $rule = $this->rules->update($rule, $data, $groups);
 
@@ -127,9 +126,8 @@ class RuleController extends Controller
      */
     private function prepareData(array $data): array
     {
-        $data['is_active'] = (bool) ($data['is_active'] ?? false);
         $groups = $data['groups'] ?? [];
-        unset($data['groups']);
+        unset($data['groups'], $data['is_active']);
 
         return [$data, $groups];
     }

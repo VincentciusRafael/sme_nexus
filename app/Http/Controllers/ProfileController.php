@@ -6,6 +6,7 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -26,13 +27,22 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $emailChanged = $user->fill($request->validated())->isDirty('email');
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->is_verified = false;
+        if ($emailChanged) {
+            $user->is_verified = false;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        if ($emailChanged) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                Log::warning('Email verification notification failed', ['error' => $e->getMessage()]);
+            }
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -47,6 +57,15 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Akun dengan profil UMKM tidak boleh menghapus dirinya sendiri karena
+        // relasi sme_profiles memakai ON DELETE CASCADE dan akan menghapus
+        // seluruh data bisnis tanpa konfirmasi/transfer kepemilikan.
+        if ($user->smeProfiles()->exists()) {
+            return Redirect::back()->withErrors([
+                'password' => 'Akun tidak dapat dihapus karena masih memiliki profil UMKM. Hapus atau pindahkan profil terlebih dahulu.',
+            ], 'userDeletion');
+        }
 
         Auth::logout();
 

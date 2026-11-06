@@ -15,9 +15,10 @@ class SmeProfileRepository
         return SmeProfile::query()
             ->with(['user', 'category'])
             ->when($filters['search'] ?? null, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('business_name', 'like', "%{$search}%")
-                        ->orWhere('city', 'like', "%{$search}%");
+                $escaped = addcslashes($search, '%_\\');
+                $query->where(function ($query) use ($escaped) {
+                    $query->where('business_name', 'like', "%{$escaped}%")
+                        ->orWhere('city', 'like', "%{$escaped}%");
                 });
             })
             ->when($filters['id_category'] ?? null, fn ($query, $category) => $query->where('id_category', $category))

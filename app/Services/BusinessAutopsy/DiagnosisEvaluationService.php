@@ -30,8 +30,9 @@ class DiagnosisEvaluationService
 
         foreach ($this->rules->activePublishedForEvaluation() as $version) {
             $rule = $version->rule;
+            $diagnosis = $version->diagnosis ?? $rule?->diagnosis;
 
-            if (! $rule || ! $rule->diagnosis) {
+            if (! $rule || ! $diagnosis || ! $diagnosis->is_active) {
                 continue;
             }
 
@@ -59,9 +60,9 @@ class DiagnosisEvaluationService
             $candidates[] = [
                 'rule' => $rule,
                 'version' => $version,
-                'diagnosis' => $rule->diagnosis,
-                'severity' => $rule->severity,
-                'priority' => $rule->priority,
+                'diagnosis' => $diagnosis,
+                'severity' => $version->severity ?? $rule->severity,
+                'priority' => $version->priority ?? $rule->priority,
                 'specificity' => $specificity,
                 'code' => $rule->code,
                 'rule_id' => $rule->getKey(),

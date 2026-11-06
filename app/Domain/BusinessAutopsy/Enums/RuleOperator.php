@@ -4,6 +4,8 @@ namespace App\Domain\BusinessAutopsy\Enums;
 
 enum RuleOperator: string
 {
+    private const EPSILON = 1e-9;
+
     case GreaterThan = 'greater_than';
     case GreaterThanOrEqual = 'greater_than_or_equal';
     case LessThan = 'less_than';
@@ -18,8 +20,8 @@ enum RuleOperator: string
             self::GreaterThanOrEqual => $actualValue >= $threshold,
             self::LessThan => $actualValue < $threshold,
             self::LessThanOrEqual => $actualValue <= $threshold,
-            self::Equal => $actualValue === $threshold,
-            self::NotEqual => $actualValue !== $threshold,
+            self::Equal => abs($actualValue - $threshold) < self::EPSILON,
+            self::NotEqual => abs($actualValue - $threshold) >= self::EPSILON,
         };
     }
 

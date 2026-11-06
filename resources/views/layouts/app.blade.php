@@ -7,6 +7,10 @@
 
         <title>{{ config('app.name', 'SME Nexus') }}</title>
 
+        <script>
+            try { document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('darkMode') === 'true' ? 'dark' : 'light'); } catch (e) {}
+        </script>
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

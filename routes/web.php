@@ -12,20 +12,22 @@ Route::middleware('guest')->group(function () {
     Route::get('/login',    [AuthController::class, 'show'])->name('login');
     Route::get('/register', [AuthController::class, 'show'])->name('register');
     Route::post('/login',    [AuthController::class, 'login']);
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:6,1');
 
     Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetLinkController::class, 'create'])
         ->name('password.request');
     Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:6,1')
         ->name('password.email');
 
     Route::get('/reset-password/{token}', [\App\Http\Controllers\Auth\NewPasswordController::class, 'create'])
         ->name('password.reset');
     Route::post('/reset-password', [\App\Http\Controllers\Auth\NewPasswordController::class, 'store'])
+        ->middleware('throttle:6,1')
         ->name('password.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
@@ -38,7 +40,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/autopsy', [\App\Http\Controllers\Decision\AutopsyController::class, 'index'])->name('autopsy');
         Route::post('/autopsy/analyze', [\App\Http\Controllers\Decision\AutopsyController::class, 'analyze'])->name('analyze');
     });
+});
 
+Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

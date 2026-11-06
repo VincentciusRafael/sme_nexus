@@ -63,6 +63,25 @@ test('admin tidak dapat menghapus akun sendiri', function () {
     $this->assertDatabaseHas('users', ['id_user' => $this->admin->id_user]);
 });
 
+test('admin tidak dapat menurunkan role akun sendiri', function () {
+    $response = $this->actingAs($this->admin)
+        ->from(route('admin.business-autopsy.users.edit', $this->admin))
+        ->put(route('admin.business-autopsy.users.update', $this->admin), [
+            'full_name' => $this->admin->full_name,
+            'email' => $this->admin->email,
+            'password' => '',
+            'password_confirmation' => '',
+            'role' => 'sme_owner',
+            'is_verified' => '1',
+        ]);
+
+    $response
+        ->assertSessionHas('error')
+        ->assertRedirect(route('admin.business-autopsy.users.edit', $this->admin));
+
+    expect($this->admin->refresh()->role)->toBe('admin');
+});
+
 test('admin dapat mengelola kategori bisnis dan kategori terpakai tidak dapat dihapus', function () {
     $this->actingAs($this->admin)
         ->post(route('admin.business-autopsy.categories.store'), [

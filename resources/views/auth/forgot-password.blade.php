@@ -138,7 +138,7 @@
         @if (session('status'))
             <div class="alert ok" role="status">{{ session('status') }}</div>
         @endif
-        @if ($errors->any() && old('form') === 'login')
+        @if ($errors->any())
             <div class="alert" role="alert">{{ $errors->first() }}</div>
         @endif
 

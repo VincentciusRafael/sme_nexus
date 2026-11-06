@@ -16,7 +16,7 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect('/dashboard');
+    $response->assertRedirect(route('verification.notice'));
 
     $this->assertDatabaseHas('users', [
         'email' => 'test@example.com',
@@ -24,4 +24,18 @@ test('new users can register', function () {
         'role' => 'sme_owner',
         'is_verified' => 0,
     ]);
+});
+
+test('registration rejects a name longer than the database column', function () {
+    $response = $this->from('/register')->post('/register', [
+        'full_name' => str_repeat('A', 101),
+        'email' => 'long-name@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors('full_name');
+    $this->assertGuest();
+    $this->assertDatabaseMissing('users', ['email' => 'long-name@example.com']);
 });

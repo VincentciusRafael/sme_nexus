@@ -142,6 +142,10 @@
             </p>
         </div>
 
+        @if ($errors->any())
+            <div class="alert" role="alert">{{ $errors->first() }}</div>
+        @endif
+
         <form method="POST" action="{{ route('password.confirm') }}" class="auth-form" data-auth-form>
             @csrf
 

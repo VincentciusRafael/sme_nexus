@@ -58,3 +58,20 @@ test('password can be reset with valid token', function () {
         return true;
     });
 });
+
+test('reset password screen menampilkan error token tidak valid', function () {
+    $user = User::factory()->create();
+
+    $this->from('/reset-password/invalid-token')
+        ->post('/reset-password', [
+            'token' => 'invalid-token',
+            'email' => $user->email,
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])
+        ->assertSessionHasErrors('email');
+
+    $this->get('/reset-password/invalid-token')
+        ->assertOk()
+        ->assertSee('This password reset token is invalid.');
+});

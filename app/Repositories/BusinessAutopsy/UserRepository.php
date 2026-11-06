@@ -14,14 +14,21 @@ class UserRepository
     {
         return User::query()
             ->when($filters['search'] ?? null, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('full_name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                $escaped = addcslashes($search, '%_\\');
+                $query->where(function ($query) use ($escaped) {
+                    $query->where('full_name', 'like', "%{$escaped}%")
+                        ->orWhere('email', 'like', "%{$escaped}%");
                 });
             })
             ->when($filters['role'] ?? null, fn ($query, string $role) => $query->where('role', $role))
             ->when(array_key_exists('is_verified', $filters) && $filters['is_verified'] !== null, function ($query) use ($filters) {
-                $query->where('is_verified', (bool) $filters['is_verified']);
+                $bool = filter_var($filters['is_verified'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+                if ($bool !== null) {
+                    $query->where('is_verified', $bool);
+                } else {
+                    $query->where('is_verified', (bool) $filters['is_verified']);
+                }
             })
             ->orderByDesc('created_at')
             ->paginate($perPage)

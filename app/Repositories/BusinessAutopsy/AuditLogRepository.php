@@ -24,9 +24,10 @@ class AuditLogRepository
         return AuditLog::query()
             ->with('user')
             ->when($filters['search'] ?? null, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('action', 'like', "%{$search}%")
-                        ->orWhere('entity_type', 'like', "%{$search}%");
+                $escaped = addcslashes($search, '%_\\');
+                $query->where(function ($query) use ($escaped) {
+                    $query->where('action', 'like', "%{$escaped}%")
+                        ->orWhere('entity_type', 'like', "%{$escaped}%");
                 });
             })
             ->when($filters['entity_type'] ?? null, fn ($query, $type) => $query->where('entity_type', $type))

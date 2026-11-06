@@ -28,14 +28,20 @@
                 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
                 'gradient' => 'linear-gradient(90deg,#FFB36B,#FF7A90)',
             ],
+            'monitor' => [
+                'title' => 'Perlu Dipantau',
+                'description' => 'Terdeteksi penurunan ringan pada satu atau beberapa indikator. Pantau dan cegah agar tidak memburuk.',
+                'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                'gradient' => 'linear-gradient(90deg,#F5C518,#FFB36B)',
+            ],
             'ok' => [
                 'title' => 'Kondisi Bisnis Stabil',
-                'description' => 'Tidak ada masalah signifikan yang terdeteksi. Kondisi bisnis Anda masih tergolong baik.',
+                'description' => 'Tidak ada penurunan yang terdeteksi pada omzet, customer, maupun penjualan. Kondisi bisnis Anda masih tergolong baik.',
                 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
                 'gradient' => 'linear-gradient(90deg,#4FE3C1,#4B4FE0)',
             ],
         ];
-        $statusConfig = $statusConfigs[$status] ?? $statusConfigs['warning'];
+        $statusConfig = $statusConfigs[$status] ?? $statusConfigs['monitor'];
 
         $metrics = [
             ['label' => 'Perubahan Omzet', 'change' => $omzetChange,

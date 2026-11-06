@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\BusinessAutopsy\Enums\RuleVersionStatus;
+use App\Domain\BusinessAutopsy\Enums\Severity;
 use App\Models\BusinessAutopsy\Diagnosis;
 use App\Models\BusinessAutopsy\Recommendation;
 use App\Models\BusinessAutopsy\Rule;
@@ -399,4 +400,43 @@ test('admin dapat menjalankan rule tester tanpa menyimpan analisis', function ()
         ->assertSee('Diagnosis eval_diag_tester');
 
     $this->assertDatabaseCount('autopsy_audit_logs', 0);
+});
+
+test('perubahan metadata rule tidak memengaruhi versi yang sedang terpublikasi', function () {
+    $symptom = diagnosisEvaluationSymptom('eval_snapshot_symptom', 'metric_snapshot');
+    $oldDiagnosis = diagnosisEvaluationDiagnosis('eval_snapshot_old', 'high', 100);
+    $newDiagnosis = diagnosisEvaluationDiagnosis('eval_snapshot_new', 'critical', 1);
+
+    $rule = diagnosisEvaluationRule($oldDiagnosis, diagnosisEvaluationGroups($symptom->id), [
+        'code' => 'snapshot_rule',
+        'severity' => 'high',
+        'priority' => 100,
+    ]);
+
+    $ruleService = app(RuleService::class);
+    $rule = $ruleService->update($rule, [
+        'code' => 'snapshot_rule',
+        'name' => $rule->name,
+        'description' => $rule->description,
+        'id_diagnosis' => $newDiagnosis->id,
+        'severity' => 'critical',
+        'priority' => 1,
+        'is_active' => true,
+        'version_notes' => 'Draft perubahan metadata',
+    ], diagnosisEvaluationGroups($symptom->id));
+
+    $evaluation = app(DiagnosisEvaluationService::class);
+    $beforePublish = $evaluation->evaluate(['metric_snapshot' => -20]);
+
+    expect($beforePublish->primaryDiagnosis()?->code)->toBe('eval_snapshot_old')
+        ->and($beforePublish->primaryCandidate['severity'])->toBe(Severity::High)
+        ->and($beforePublish->primaryCandidate['priority'])->toBe(100);
+
+    $ruleService->publish($rule);
+
+    $afterPublish = $evaluation->evaluate(['metric_snapshot' => -20]);
+
+    expect($afterPublish->primaryDiagnosis()?->code)->toBe('eval_snapshot_new')
+        ->and($afterPublish->primaryCandidate['severity'])->toBe(Severity::Critical)
+        ->and($afterPublish->primaryCandidate['priority'])->toBe(1);
 });

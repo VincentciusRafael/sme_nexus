@@ -59,6 +59,17 @@ class UserService
      */
     public function update(User $user, array $data): User
     {
+        if (
+            $user->getKey() === auth()->id()
+            && $user->role === 'admin'
+            && (
+                ($data['role'] ?? 'admin') !== 'admin'
+                || ! ($data['is_verified'] ?? true)
+            )
+        ) {
+            throw new DomainException('Anda tidak dapat menurunkan role atau menonaktifkan verifikasi akun sendiri.');
+        }
+
         $oldValues = $user->only(['full_name', 'email', 'role', 'is_verified']);
 
         if (! empty($data['password'])) {

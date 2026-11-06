@@ -3,6 +3,7 @@
 namespace App\Repositories\BusinessAutopsy;
 
 use App\Domain\BusinessAutopsy\Enums\RuleVersionStatus;
+use App\Domain\BusinessAutopsy\Enums\Severity;
 use App\Models\BusinessAutopsy\Rule;
 use App\Models\BusinessAutopsy\RuleGroup;
 use App\Models\BusinessAutopsy\RuleVersion;
@@ -23,14 +24,22 @@ class RuleRepository
                 'versions as has_published_version' => fn ($query) => $query->where('status', RuleVersionStatus::Published->value),
             ])
             ->when($filters['search'] ?? null, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('code', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%");
+                $escaped = addcslashes($search, '%_\\');
+                $query->where(function ($query) use ($escaped) {
+                    $query->where('code', 'like', "%{$escaped}%")
+                        ->orWhere('name', 'like', "%{$escaped}%");
                 });
             })
             ->when($filters['id_diagnosis'] ?? null, fn ($query, $diagnosis) => $query->where('id_diagnosis', $diagnosis))
             ->when(array_key_exists('is_active', $filters) && $filters['is_active'] !== null, function ($query) use ($filters) {
-                $query->where('is_active', (bool) $filters['is_active']);
+                $val = $filters['is_active'];
+                $bool = filter_var($val, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                // Fallback untuk nilai 'true'/'false' string yang belum diparse
+                if ($bool !== null) {
+                    $query->where('is_active', $bool);
+                } else {
+                    $query->where('is_active', (bool) $val);
+                }
             })
             ->orderByDesc('is_active')
             ->orderBy('priority')
@@ -87,8 +96,7 @@ class RuleRepository
             ->where('status', RuleVersionStatus::Published->value)
             ->where('is_active', true)
             ->whereHas('rule', fn ($query) => $query->where('is_active', true))
-            ->whereHas('rule.diagnosis', fn ($query) => $query->where('is_active', true))
-            ->with(['rule.diagnosis', 'groups.conditions.symptom'])
+            ->with(['rule.diagnosis', 'diagnosis', 'groups.conditions.symptom'])
             ->get();
     }
 
@@ -98,6 +106,12 @@ class RuleRepository
      */
     public function createVersion(Rule $rule, array $data, array $groups): RuleVersion
     {
+        $data += [
+            'id_diagnosis' => $rule->id_diagnosis,
+            'severity' => $rule->severity instanceof Severity ? $rule->severity->value : $rule->severity,
+            'priority' => $rule->priority,
+        ];
+
         return DB::transaction(function () use ($rule, $data, $groups) {
             $version = $rule->versions()->create($data);
             $this->syncGroups($version, $groups);
@@ -112,6 +126,16 @@ class RuleRepository
      */
     public function updateDraftVersion(RuleVersion $version, array $data, array $groups): RuleVersion
     {
+        $rule = $version->rule;
+
+        if ($rule !== null) {
+            $data += [
+                'id_diagnosis' => $rule->id_diagnosis,
+                'severity' => $rule->severity instanceof Severity ? $rule->severity->value : $rule->severity,
+                'priority' => $rule->priority,
+            ];
+        }
+
         return DB::transaction(function () use ($version, $data, $groups) {
             $version->update($data);
             $this->syncGroups($version, $groups);

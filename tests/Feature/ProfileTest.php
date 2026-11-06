@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\BusinessCategory;
+use App\Models\SmeProfile;
 use App\Models\User;
 
 test('profile page is displayed', function () {
@@ -61,6 +63,59 @@ test('email verification status is reset when the email address changes', functi
         ]);
 
     $this->assertFalse($user->refresh()->is_verified);
+});
+
+test('profile rejects a name longer than the database column', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->from('/profile')
+        ->patch('/profile', [
+            'full_name' => str_repeat('A', 101),
+            'email' => $user->email,
+        ]);
+
+    $response
+        ->assertSessionHasErrors('full_name')
+        ->assertRedirect('/profile');
+
+    expect($user->refresh()->full_name)->not->toBe(str_repeat('A', 101));
+});
+
+test('user with an SME profile cannot delete their account', function () {
+    $user = User::factory()->create();
+
+    $category = BusinessCategory::query()->create([
+        'category_name' => 'Retail',
+        'deskripsi' => 'Perdagangan eceran',
+    ]);
+
+    SmeProfile::query()->create([
+        'id_user' => $user->id_user,
+        'id_category' => $category->id_category,
+        'business_name' => 'Toko Uji',
+        'city' => 'Jakarta',
+        'established_year' => 2020,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->from('/profile')
+        ->delete('/profile', [
+            'password' => 'password',
+        ]);
+
+    $response
+        ->assertSessionHasErrorsIn('userDeletion', 'password')
+        ->assertRedirect('/profile');
+
+    $this->assertAuthenticated();
+    $this->assertNotNull($user->fresh());
+    $this->assertDatabaseHas('sme_profiles', [
+        'id_user' => $user->id_user,
+        'business_name' => 'Toko Uji',
+    ]);
 });
 
 test('user can delete their account', function () {

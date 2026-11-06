@@ -11,6 +11,7 @@
 .env.backup
 .env.production
 .env.testing
+/dump-db_*.sql
 .phpactor.json
 .phpunit.result.cache
 Homestead.json

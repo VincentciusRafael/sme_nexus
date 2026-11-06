@@ -20,6 +20,39 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
+test('remember me stores a remember token', function () {
+    $user = User::factory()->create();
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+        'remember' => '1',
+    ]);
+
+    $this->assertAuthenticated();
+    expect($user->fresh()->remember_token)->not->toBeNull();
+});
+
+test('unverified users are redirected to the verification notice after login', function () {
+    $user = User::factory()->unverified()->create();
+
+    $response = $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('verification.notice'));
+});
+
+test('unverified users cannot access the dashboard', function () {
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user)
+        ->get('/dashboard')
+        ->assertRedirect(route('verification.notice'));
+});
+
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 

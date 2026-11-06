@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -17,19 +19,41 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email'    => ['required', 'email', 'max:100'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        // Kunci throttle menggabungkan email dan IP agar satu alamat IP yang
+        // dipakai bersama tidak memblokir semua akun sekaligus.
+        $throttleKey = Str::lower((string) $request->input('email')).'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()
+                ->withErrors(['email' => 'Terlalu banyak percobaan masuk. Coba lagi dalam '.ceil($seconds / 60).' menit.'])
+                ->onlyInput('email', 'form');
+        }
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
-            // Admin langsung ke halaman admin, user lain tetap ke dashboard.
             $user = Auth::user();
+
+            // Akun yang belum memverifikasi email tetap boleh login, tetapi
+            // diarahkan ke halaman verifikasi sebelum mengakses fitur utama.
+            if ($user && ! $user->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
+
+            // Admin langsung ke halaman admin, user lain tetap ke dashboard.
             $default = $user && $user->role === 'admin' ? '/admin/business-autopsy' : '/dashboard';
 
             return redirect()->intended($default);
         }
+
+        RateLimiter::hit($throttleKey, 60);
 
         // 'form' ikut dikirim balik agar halaman tetap membuka panel login.
         return back()
@@ -40,8 +64,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'full_name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
+            'full_name'     => ['required', 'string', 'max:100'],
+            'email'    => ['required', 'email', 'max:100', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'terms'    => ['accepted'],
         ], [
@@ -59,10 +83,18 @@ class AuthController extends Controller
             'is_verified' => false,
         ]);
 
+        // Kirim email verifikasi (jika mail dikonfigurasi); user tetap bisa login tapi diarahkan verifikasi.
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            // Jika mail belum dikonfigurasi, jangan gagalkan registrasi.
+            \Illuminate\Support\Facades\Log::warning('Email verification notification failed', ['error' => $e->getMessage()]);
+        }
+
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect('/dashboard');
+        return redirect()->route('verification.notice');
     }
 
     public function logout(Request $request)

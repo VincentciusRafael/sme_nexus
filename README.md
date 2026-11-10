@@ -1,66 +1,163 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SME Nexus
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**SME Nexus** adalah aplikasi berbasis web yang dikembangkan menggunakan Laravel 12 untuk mendukung pengelolaan profil UMKM serta proses intelligence dan collaboration dalam satu platform.
 
-## About Laravel
+## Teknologi
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2 atau lebih baru
+- Laravel 12
+- MySQL / MariaDB
+- Composer
+- HTML, CSS, dan JavaScript
+- Laravel Eloquent ORM
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Persyaratan Sistem
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Pastikan perangkat sudah memiliki:
 
-## Learning Laravel
+- PHP >= 8.2
+- Composer
+- MySQL atau MariaDB
+- Ekstensi PHP: `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `fileinfo`, dan `json`
+- Git
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Instalasi
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 1. Clone Repository
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+git clone https://github.com/VincentciusRafael/sme_nexus.git
+cd sme_nexus
+```
 
-## Laravel Sponsors
+### 2. Install Dependency Laravel
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Folder `vendor/` tidak disertakan dalam repository. Buat kembali dependency menggunakan Composer:
 
-### Premium Partners
+```bash
+composer install
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 3. Konfigurasi Environment
 
-## Contributing
+Buat file `.env` dari template:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+cp .env.example .env
+```
 
-## Code of Conduct
+Buka `.env`, lalu sesuaikan konfigurasi aplikasi dan database:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```env
+APP_NAME="SME Nexus"
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
 
-## Security Vulnerabilities
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=db_sme
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Sesuaikan username dan password database dengan konfigurasi MySQL/MariaDB masing-masing.
 
-## License
+### 4. Generate Application Key
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan key:generate
+```
+
+### 5. Persiapkan Database
+
+Buat database dengan nama:
+
+```sql
+CREATE DATABASE db_sme;
+```
+
+Impor file backup database SME Nexus (`.sql`) melalui phpMyAdmin atau MySQL client.
+
+Contoh menggunakan terminal:
+
+```bash
+mysql -u root -p db_sme < nama_file_backup.sql
+```
+
+Ganti `nama_file_backup.sql` dengan lokasi file backup database yang disediakan.
+
+**Catatan:** Impor backup database terlebih dahulu apabila menggunakan database yang sudah berisi struktur tabel dan data. Jangan menjalankan `migrate:fresh` karena perintah tersebut menghapus seluruh tabel dan data.
+
+### 6. Persiapkan Storage
+
+```bash
+php artisan storage:link
+```
+
+### 7. Bersihkan Cache Konfigurasi
+
+```bash
+php artisan optimize:clear
+```
+
+### 8. Jalankan Aplikasi
+
+```bash
+php artisan serve
+```
+
+Buka aplikasi melalui:
+
+http://127.0.0.1:8000
+
+## Frontend dan Asset
+
+Versi project ini menggunakan asset CSS dan JavaScript yang sudah tersedia pada source code.
+
+Untuk menjalankan aplikasi sesuai konfigurasi asset saat ini, tidak diperlukan proses `npm install`, `npm run dev`, maupun `npm run build`.
+
+## Struktur Project
+
+```text
+sme_nexus/
+├── app/
+│   ├── Modules/
+│   └── Shared/
+├── bootstrap/
+├── config/
+├── database/
+│   ├── factories/
+│   ├── migrations/
+│   └── seeders/
+├── public/
+├── resources/
+│   └── views/
+├── routes/
+├── storage/
+├── tests/
+├── .env.example
+├── artisan
+├── composer.json
+├── composer.lock
+└── README.md
+```
+
+## Catatan Penting
+
+- File `.env` tidak disertakan karena berisi konfigurasi lokal dan informasi sensitif.
+- Folder `vendor/` tidak disertakan karena dapat dibuat kembali melalui Composer.
+- File `composer.lock` disertakan untuk menjaga konsistensi versi dependency.
+- Database harus disiapkan dan diimpor sebelum aplikasi dijalankan.
+- Jangan menggunakan `migrate:fresh` pada database yang sudah berisi data penting.
+- Untuk deployment production, ubah `APP_ENV` menjadi `production` dan `APP_DEBUG` menjadi `false`.
+- Jangan membagikan password database, application key, atau API key ke repository publik.
+
+## Pengembang
+
+**SME Nexus**  
+Laravel-based SME Management Platform
+
+Repository: https://github.com/VincentciusRafael/sme_nexus

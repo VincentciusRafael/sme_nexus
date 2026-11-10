@@ -24,3 +24,21 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Composer dependencies
+/vendor/
+
+# Laravel runtime
+/storage/*.key
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+
+# Local development
+.phpunit.cache/
